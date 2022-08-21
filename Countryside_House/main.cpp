@@ -17,7 +17,7 @@ double up[3] = {0.0, 1.0, 0.0};
 int flag=-1;
 
 double angle=0,speed=5,maino=-180.0,windo1=-2.5,windo2=-3.5,tro=0,romo=0,mgo=0;
-GLuint  _textureSky, _textureWindow;
+GLuint  _textureSky, _textureWindow, _texturePiso;
 
 //declarating quadric objects
 GLUquadricObj *Cylinder;
@@ -54,10 +54,12 @@ void myinit(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    Image* image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Countryside_House/sky.bmp");
+    Image* image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Countryside_House/Img/piso1.bmp");
 	_textureSky = loadTexture(image);
-	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Countryside_House/janela1.bmp");
+	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Countryside_House/Img/roof.bmp");
 	_textureWindow = loadTexture(image);
+    image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Countryside_House/Img/bricks.bmp");
+	_texturePiso = loadTexture(image);
 
 	delete image;
 
@@ -144,6 +146,7 @@ void setBackView()
 
 void front_Triangulo(void)
 {
+    
     glEnable(GL_TEXTURE_2D);
 
     glPushMatrix();
@@ -261,6 +264,108 @@ void earth(void)
     glutSolidCube(1.0);
     glPopMatrix();
     glFlush();
+}
+
+void piso(void)
+{
+    glEnable(GL_TEXTURE_2D);
+
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, _texturePiso);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTranslated(1,-0.539,4.48);
+    glRotated(90.0,0,1,0);
+    glRotated(-90.0,1,0,0);
+    glBegin(GL_QUADS);
+            glTexCoord2f(4,0);  glVertex3f(0.56,1,1); //1
+            glTexCoord2f(8,0); glVertex3f(4.5,1,1); //2
+            glTexCoord2f(8,-4); glVertex3f(4.5,-4.95,1); //3
+            glTexCoord2f(4,-4);  glVertex3f(0.56,-4.95,1); //4
+    glEnd();
+    glPopMatrix();
+}
+
+void compound(void)      //carpaser gher
+{
+
+	GLfloat ambient[]={1,0,0,1};
+	GLfloat specular[]={0,1,1,1};
+	GLfloat diffuse[]={.7,.7,.7,1};
+	GLfloat shininess[]={50};
+
+
+	matprop(ambient,diffuse,specular,shininess);
+	GLfloat lightIntensity[]={.7,.7,.8,1};
+	GLfloat light_position[]={2,6,1.5,0};
+	glLightfv(GL_LIGHT0,GL_POSITION,light_position);
+	glLightfv(GL_LIGHT0,GL_DIFFUSE,lightIntensity);
+
+	//left wall of compound
+	glPushMatrix();
+	glPushMatrix();
+	glTranslated(-6,0,-2.5-.04);
+	glRotated(90.0,0,0,1);
+	
+    glPushMatrix();
+    glTranslated(.8,.5*(0.08)*4,3.5);
+    glScaled(1.6,0.08*4,14.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+	glPopMatrix();
+	//right wall of compound
+	glPushMatrix();
+	glTranslated(10,0,-3-.02);
+	glRotated(90.0,0,0,1);
+	
+    glPushMatrix();
+    glTranslated(.8,.5*(0.08)*4,3.5);
+    glScaled(1.6,0.08*4,14.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+	glPopMatrix();
+	//back wall of compound
+	glPushMatrix();
+	glTranslated(2,.8,-6);
+	glRotated(-90,1,0,0);
+	glScaled(16,.02*4,1.6);
+	glutSolidCube(1.0);
+	glPopMatrix();
+
+	//front left wall of compound
+	glPushMatrix();
+	glTranslated(-4,.8,8-.08);
+	glRotated(-90,1,0,0);
+	glScaled(4,.02*4,1.6);
+	glutSolidCube(1.0);
+	glPopMatrix();
+	//front right wall of compound
+	glPushMatrix();
+	glTranslated(5,.8,8-.08);
+	glRotated(-90,1,0,0);
+	glScaled(10,.02*4,1.6);
+	glutSolidCube(1.0);
+	glPopMatrix();
+
+	glPopMatrix();
+
+	GLfloat ambient2[]={0,1,0,1};
+	GLfloat specular2[]={1,1,1,1};
+	GLfloat diffuse2[]={.2,.6,0.1,1};
+	GLfloat shininess2[]={50};
+		matprop(ambient2,diffuse2,specular2,shininess2);
+
+	//floor
+	glPushMatrix();
+	glTranslated(-4,-0.05,-1);
+	glScaled(3,3,1.7);
+	wall(0.08);
+	glPopMatrix();
+
+    glFlush();
+
 }
 
 void fanwing(float winglen)// fan er pakha
@@ -409,7 +514,7 @@ void solar(void)
 void house(void)
 {
 
-    GLfloat mat_ambient[]= {0.1,0.1,0.1,1};
+    GLfloat mat_ambient[]= {0.9,0.1,0.1,1};
     GLfloat mat_specular[]= {1,1,1,1};
     GLfloat mat_diffuse[]= {1,1,1,1};
     GLfloat mat_shininess[]= {50};
@@ -427,6 +532,12 @@ void house(void)
     glLightfv(GL_LIGHT7,GL_DIFFUSE,lightIntensity5);
     glEnable(GL_LIGHT7);
 
+    GLfloat lightIntensity6[]= {.5,.5,.5,.5};
+    GLfloat light_position6[]= {0,10,10,1};
+    glLightfv(GL_LIGHT1,GL_POSITION,light_position6);
+    glLightfv(GL_LIGHT1,GL_DIFFUSE,lightIntensity6);
+
+    piso();
     right_window();
 
     // base da casa
@@ -545,6 +656,12 @@ void house(void)
     glRotated(-90.0,1,0,0);
     wall(0.08);
     glPopMatrix();
+
+    GLfloat ambient7[]= {1,0.9,0.5,1};
+    GLfloat specular7[]= {1,1,1,1};
+    GLfloat diffuse7[]= {1, 0.5, 0.8,1};
+    GLfloat shininess7[]= {50};
+    matprop(ambient7,diffuse7,specular7,shininess7);
 
     //wall right to the main door
     glPushMatrix();
@@ -707,6 +824,7 @@ void display(void)
     gluLookAt(view[0], view[1], view[2], look[0], look[1], look[2], up[0], up[1], up[2]);
 
     earth();
+    compound();
     house();
     glFlush();
     glutSwapBuffers();
@@ -807,7 +925,7 @@ void Keyboard(unsigned char key,int x,int y)
 
 int main(int argc,char**argv)
 {
-    printf("**<<Press G for Gate on & off>>**\n");
+
     printf("**<<Press P for Main door & O for insider door on & off>>**\n");
     printf("**<<Press I for inside view & T for top view >>**\n");
     printf("**<<Press B for back view & F for front view>>**\n");
@@ -817,7 +935,7 @@ int main(int argc,char**argv)
     glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
     glutInitWindowSize(1366,768);
     glutInitWindowPosition(0,0);
-    glutCreateWindow("Sweet Home");
+    glutCreateWindow("Tactile Experience");
     glEnable(GL_DEPTH_TEST);
     myinit();
 

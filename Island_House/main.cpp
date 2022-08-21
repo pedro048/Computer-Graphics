@@ -54,13 +54,13 @@ void myinit(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    Image* image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Island_House/Img/basecase2.bmp");
+    Image* image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Island_House/Img/basecase2.bmp");
 	_textureGrama = loadTexture(image);
-	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Island_House/Img/janela1.bmp");
+	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Island_House/Img/janela1.bmp");
 	_textureJanela = loadTexture(image);
-	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Island_House/Img/sky.bmp");
+	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Island_House/Img/sky.bmp");
 	_textureHouse = loadTexture(image);
-	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Island_House/Img/piso2.bmp");
+	image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Island_House/Img/piso2.bmp");
 	_texturePiso = loadTexture(image);
 	delete image;
 
