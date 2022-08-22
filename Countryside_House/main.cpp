@@ -12,6 +12,8 @@
 #define GLUT_KEY_ESCAPE 27
 #define DEG2RAD(a) (a * 0.0174532925)
 
+bool aux_rain = false;
+
 #define MAX_PARTICLES 1000
 #define WCX		640
 #define WCY		480
@@ -1079,7 +1081,9 @@ void display(void)
 
 
   // Which Particles
- //func_particles();
+  if(aux_rain == true){
+    func_particles();
+  }
 }
 
 void Keyboard(unsigned char key,int x,int y)
@@ -1161,7 +1165,12 @@ void Keyboard(unsigned char key,int x,int y)
     case 'f':
         setFrontView();
         break;
-
+    case 'e':
+        aux_rain = false;
+        break;
+    case 'q':
+        aux_rain = true;
+        break;
     case 'b':
         setBackView();
         break;
