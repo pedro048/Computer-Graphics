@@ -79,7 +79,7 @@ double up[3] = {0.0, 1.0, 0.0};
 int flag=-1;
 
 double angle=0,speed=5,maino=-180.0,windo1=-2.5,windo2=-3.5,tro=0,romo=0,mgo=0;
-GLuint  _textureSky, _textureWindow, _texturePiso;
+GLuint  _textureSky, _textureWindow, _texturePiso, _textureGrama;
 
 //declarating quadric objects
 GLUquadricObj *Cylinder;
@@ -135,6 +135,8 @@ void myinit(void)
 	_textureWindow = loadTexture(image);
     image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Countryside_House/Img/bricks.bmp");
 	_texturePiso = loadTexture(image);
+    image = loadBMP("/home/pedro/Documentos/Mestrado/QoE Testes/Códigos - OpenGL/Computer-Graphics/Countryside_House/Img/grass.bmp");
+	_textureGrama = loadTexture(image);
 
 	delete image;
 
@@ -479,13 +481,32 @@ void earth(void)
     glLightfv(GL_LIGHT0,GL_POSITION,light_position);
     glLightfv(GL_LIGHT0,GL_DIFFUSE,lightIntensity);
 
-
     glPushMatrix();
     glTranslated(0,-.25,0);
     glScaled(5000,.5,5000);
     glutSolidCube(1.0);
     glPopMatrix();
     glFlush();
+}
+
+void gramado(void)
+{
+   glEnable(GL_TEXTURE_2D);
+
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, _textureGrama);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTranslated(10.2,1.6,-13);
+    glScaled(.16,3,10.4);
+    glRotated(-90.0,0,1,0);
+    glBegin(GL_QUADS);
+            glTexCoord2f(1,0);  glVertex3f(0.56,0,1); //1
+            glTexCoord2f(2.0,0); glVertex3f(2,0,1); //2
+            glTexCoord2f(2.0,-1); glVertex3f(2,-1.6,1); //3
+            glTexCoord2f(1,-1);  glVertex3f(0.56,-1.6,1); //4
+    glEnd();
+    glPopMatrix();
 }
 
 void piso(void)
@@ -760,6 +781,7 @@ void house(void)
     glLightfv(GL_LIGHT1,GL_DIFFUSE,lightIntensity6);
 
     piso();
+    gramado();
     right_window();
 
     // base da casa
