@@ -7,8 +7,68 @@
 #include <math.h>
 #include "imageloader.h"
 #include "imageloader.cpp"
+#include <stdlib.h>
+#include <string.h>
 #define GLUT_KEY_ESCAPE 27
 #define DEG2RAD(a) (a * 0.0174532925)
+
+#define MAX_PARTICLES 1000
+#define WCX		640
+#define WCY		480
+#define RAIN	0
+#define SNOW	1
+#define	HAIL	2
+
+float slowdown = 2.0;
+float velocity = 0.0;
+float zoom = -40.0;
+float pan = 0.0;
+float tilt = 0.0;
+float hailsize = 0.1;
+
+int loop;
+int fall;
+
+typedef struct {
+  // Life
+  bool alive;	// is the particle alive?
+  float life;	// particle lifespan
+  float fade; // decay
+  // color
+  float red;
+  float green;
+  float blue;
+  // Position/direction
+  float xpos;
+  float ypos;
+  float zpos;
+  // Velocity/Direction, only goes down in y dir
+  float vel;
+  // Gravity
+  float gravity;
+}particles;
+
+// Paticle System
+particles par_sys[MAX_PARTICLES];
+
+// Initialize/Reset Particles - give them their attributes
+void initParticles(int i) {
+    par_sys[i].alive = true;
+    par_sys[i].life = 1.0;
+    par_sys[i].fade = float(rand()%100)/1000.0f+0.003f;
+
+    par_sys[i].xpos = (float) (rand() % 21) - 10;
+    par_sys[i].ypos = 10.0;
+    par_sys[i].zpos = (float) (rand() % 21) - 10;
+
+    par_sys[i].red = 0.5;
+    par_sys[i].green = 0.5;
+    par_sys[i].blue = 1.0;
+
+    par_sys[i].vel = velocity;
+    par_sys[i].gravity = -0.8;//-0.8;
+
+}
 
 // PAR�METROS DO LOOKAT
 double view[3]= {2,2,12.9};
@@ -48,6 +108,19 @@ GLuint loadTexture(Image* image) {
 //initialisation
 void myinit(void)
 {
+
+    int x, z;
+
+    glShadeModel(GL_SMOOTH);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearDepth(1.0);
+    glEnable(GL_DEPTH_TEST);
+
+    // Initialize particles
+    for (loop = 0; loop < MAX_PARTICLES; loop++) {
+        initParticles(loop);
+    }
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-1.0,1.0,-1*1366/768,1*1366/768,1,200.0);
@@ -77,6 +150,153 @@ void myinit(void)
     GLfloat gam[]= {0.2,.2,.2,1};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT,gam);
 
+}
+
+// For Rain
+void drawRain() {
+  float x, y, z;
+  for (loop = 0; loop < MAX_PARTICLES; loop=loop+2) {
+    if (par_sys[loop].alive == true) {
+      x = par_sys[loop].xpos;
+      y = par_sys[loop].ypos;
+      z = par_sys[loop].zpos + zoom;
+
+      // Draw particles
+      glColor3f(0.5, 0.5, 1.0);
+      glBegin(GL_LINES);
+        glVertex3f(x, y, z);
+        glVertex3f(x, y+0.5, z);
+      glEnd();
+
+      // Update values
+      //Move
+      // Adjust slowdown for speed!
+      par_sys[loop].ypos += par_sys[loop].vel / (slowdown*1000);
+      par_sys[loop].vel += par_sys[loop].gravity;
+      // Decay
+      par_sys[loop].life -= par_sys[loop].fade;
+
+      if (par_sys[loop].ypos <= -10) {
+        par_sys[loop].life = -1.0;
+      }
+      //Revive
+      if (par_sys[loop].life < 0.0) {
+        initParticles(loop);
+      }
+    }
+  }
+}
+
+// For Hail
+void drawHail() {
+  float x, y, z;
+
+  for (loop = 0; loop < MAX_PARTICLES; loop=loop+2) {
+    if (par_sys[loop].alive == true) {
+      x = par_sys[loop].xpos;
+      y = par_sys[loop].ypos;
+      z = par_sys[loop].zpos + zoom;
+
+      // Draw particles
+      glColor3f(0.8, 0.8, 0.9);
+      glBegin(GL_QUADS);
+        // Front
+        glVertex3f(x-hailsize, y-hailsize, z+hailsize); // lower left
+        glVertex3f(x-hailsize, y+hailsize, z+hailsize); // upper left
+        glVertex3f(x+hailsize, y+hailsize, z+hailsize); // upper right
+        glVertex3f(x+hailsize, y-hailsize, z+hailsize); // lower left
+        //Left
+        glVertex3f(x-hailsize, y-hailsize, z+hailsize);
+        glVertex3f(x-hailsize, y-hailsize, z-hailsize);
+        glVertex3f(x-hailsize, y+hailsize, z-hailsize);
+        glVertex3f(x-hailsize, y+hailsize, z+hailsize);
+        // Back
+        glVertex3f(x-hailsize, y-hailsize, z-hailsize);
+        glVertex3f(x-hailsize, y+hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y+hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y-hailsize, z-hailsize);
+        //Right
+        glVertex3f(x+hailsize, y+hailsize, z+hailsize);
+        glVertex3f(x+hailsize, y+hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y-hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y-hailsize, z+hailsize);
+        //Top
+        glVertex3f(x-hailsize, y+hailsize, z+hailsize);
+        glVertex3f(x-hailsize, y+hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y+hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y+hailsize, z+hailsize);
+        //Bottom
+        glVertex3f(x-hailsize, y-hailsize, z+hailsize);
+        glVertex3f(x-hailsize, y-hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y-hailsize, z-hailsize);
+        glVertex3f(x+hailsize, y-hailsize, z+hailsize);
+      glEnd();
+
+      // Update values
+      //Move
+      if (par_sys[loop].ypos <= -10) {
+        par_sys[loop].vel = par_sys[loop].vel * -1.0;
+      }
+      par_sys[loop].ypos += par_sys[loop].vel / (slowdown*1000); // * 1000
+      par_sys[loop].vel += par_sys[loop].gravity;
+
+      // Decay
+      par_sys[loop].life -= par_sys[loop].fade;
+
+      //Revive
+      if (par_sys[loop].life < 0.0) {
+        initParticles(loop);
+      }
+    }
+  }
+}
+
+// For Snow
+void drawSnow() {
+  float x, y, z;
+  for (loop = 0; loop < MAX_PARTICLES; loop=loop+2) {
+    if (par_sys[loop].alive == true) {
+      x = par_sys[loop].xpos;
+      y = par_sys[loop].ypos;
+      z = par_sys[loop].zpos + zoom;
+
+      // Draw particles
+      glColor3f(1.0, 1.0, 1.0);
+      glPushMatrix();
+      glTranslatef(x, y, z);
+      glutSolidSphere(0.2, 16, 16);
+      glPopMatrix();
+
+      // Update values
+      //Move
+      par_sys[loop].ypos += par_sys[loop].vel / (slowdown*1000);
+      par_sys[loop].vel += par_sys[loop].gravity;
+      // Decay
+      par_sys[loop].life -= par_sys[loop].fade;
+
+      //Revive
+      if (par_sys[loop].life < 0.0) {
+        initParticles(loop);
+      }
+    }
+  }
+}
+
+void reshape(int w, int h) {
+    if (h == 0) h = 1;
+
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    gluPerspective(45, (float) w / (float) h, .1, 200);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+void idle ( ) {
+  glutPostRedisplay();
 }
 
 //set material property
@@ -773,6 +993,19 @@ void house(void)
 
 }
 
+void func_particles(void){
+ if (fall == RAIN) {
+    drawRain();
+    glutSwapBuffers();
+  }else if (fall == HAIL) {
+    drawHail();
+    glutSwapBuffers();
+  }else if (fall == SNOW) {
+    drawSnow();
+    glutSwapBuffers();
+  }
+}
+
 class Camera
 {
 public:
@@ -816,6 +1049,7 @@ Camera camera;
 
 void display(void)
 {
+
     time(&ltime); // Get time
     newtime = localtime(&ltime); // Convert to local time
     glMatrixMode(GL_MODELVIEW);
@@ -830,6 +1064,22 @@ void display(void)
     glutSwapBuffers();
     glutPostRedisplay();
 
+
+    //int i, j;
+    //float x, y, z;
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+
+    glLoadIdentity();
+
+
+  glRotatef(pan, 0.0, 1.0, 0.0);
+  glRotatef(tilt, 1.0, 0.0, 0.0);
+
+
+  // Which Particles
+ //func_particles();
 }
 
 void Keyboard(unsigned char key,int x,int y)
@@ -915,7 +1165,18 @@ void Keyboard(unsigned char key,int x,int y)
     case 'b':
         setBackView();
         break;
-
+    case 'c': // Rain
+        fall = RAIN;
+        glutPostRedisplay();
+        break;
+    case 'n': // Hail
+        fall = HAIL;
+        glutPostRedisplay();
+        break;
+    case 'm': // Snow
+        fall = SNOW;
+        glutPostRedisplay();
+        break;     
     case GLUT_KEY_ESCAPE:
         exit(EXIT_SUCCESS);
     }
@@ -941,6 +1202,11 @@ int main(int argc,char**argv)
 
     glutDisplayFunc(display);
     glutKeyboardFunc(Keyboard);
+
+    glutReshapeFunc(reshape);
+    glutIdleFunc(idle);
+    
+
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glShadeModel(GL_SMOOTH);//smooth shaded
