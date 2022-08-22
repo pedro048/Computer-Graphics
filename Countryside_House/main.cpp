@@ -1015,14 +1015,11 @@ public:
     void FRENTE(float d)
     {
         view[2] -= d;
-
-
     }
 
     void TRAS(float d)
     {
         view[2] += d;
-
     }
 
     void DIREITA(float d)
